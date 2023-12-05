@@ -1,11 +1,19 @@
-const express = require('express');
-const cors = require('cors');
+require("dotenv").config()
 
-const app = express();
+const express = require("express")
+const cors = require("cors")
 
-app.use(express.json());
-app.use(cors());
+const { requireUser, createUser } = require("./auth")
 
-app.get('/', (_, res) => res.status(200).json({ message: `Hello, World!!!` }));
+const app = express()
 
-app.listen(5000, () => console.log(`Server running on port 5000`));
+app.use(express.json())
+app.use(cors())
+
+app.get("/whoami", requireUser, (req, res) => {
+  res.json({ userId: req.user.userId })
+})
+
+app.get("/", (_, res) => res.status(200).json({ message: `Hello, World!!!` }))
+
+app.listen(5000, () => console.log(`Server running on port 5000`))
