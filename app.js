@@ -3,7 +3,14 @@ require("dotenv").config()
 const express = require("express")
 const cors = require("cors")
 
-const { requireUser, createUser, createAccessToken, fetchUserMetadataByEmail } = require("./auth")
+const {
+  requireUser,
+  createUser,
+  createAccessToken,
+  fetchUserMetadataByEmail,
+  createOrg,
+  addUserToOrg
+} = require("./auth")
 
 const app = express()
 
@@ -14,12 +21,17 @@ app.get("/whoami", requireUser, (req, res) => {
   res.json({ userId: req.user.userId })
 })
 
+app.get("/list-organizations", requireUser, async (req, res) => {
+  const userDetails = await fetchUserMetadataByEmail(req.user.email, true)
+
+  return res.status(200).json({ userDetails })
+})
+
 app.post(`/create-user`, async (req, res) => {
   const { email, password } = req.body
 
   try {
-
-    const existingUser = await fetchUserMetadataByEmail(email);
+    const existingUser = await fetchUserMetadataByEmail(email)
 
     if (existingUser) {
       return res.status(409).json({ message: `User already exists` })
@@ -35,7 +47,7 @@ app.post(`/create-user`, async (req, res) => {
       userId: user.userId,
       durationInMinutes: 60,
     })
-    
+
     return res.status(201).json({ userId: user.userId, token })
   } catch (error) {
     console.log("error", error)
