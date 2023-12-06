@@ -14,8 +14,23 @@ const {
 
 const app = express()
 
+var whitelist = ['http://localhost:3000', 'https://website-mygets.vercel.app/']
+
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+ 
+
+app.use(cors(corsOptions))
 app.use(express.json())
-app.use(cors({ origin: `*` }))
+
+// app.options('*', cors())
 
 app.get("/whoami", requireUser, (req, res) => {
   res.json({ userId: req.user.userId })
@@ -29,7 +44,7 @@ app.get("/list-organizations", requireUser, async (req, res) => {
 app.post("/create-organization", requireUser, async (req, res) => {
   const organization = await createOrg({ name: req.body.name })
   const orgResponse = await addUserToOrg({ orgId: organization.orgId, userId: req.user.userId, role: `Admin` })
-  return res.status(201).json(orgResponse)
+  return res.status(201).json({ success: true })
 })
 
 
