@@ -23,8 +23,7 @@ app.get("/whoami", requireUser, (req, res) => {
 
 app.get("/list-organizations", requireUser, async (req, res) => {
   const userDetails = await fetchUserMetadataByEmail(req.user.email, true)
-
-  return res.status(200).json({ userDetails })
+  return res.status(200).json(Object.values(userDetails.orgIdToOrgInfo))
 })
 
 app.post(`/create-user`, async (req, res) => {
