@@ -26,6 +26,13 @@ app.get("/list-organizations", requireUser, async (req, res) => {
   return res.status(200).json(Object.values(userDetails.orgIdToOrgInfo))
 })
 
+app.post("/create-organization", requireUser, async (req, res) => {
+  const organization = await createOrg({ name: req.body.name })
+  const orgResponse = await addUserToOrg({ orgId: organization.orgId, userId: req.user.userId, role: `Admin` })
+  return res.status(201).json(orgResponse)
+})
+
+
 app.post(`/create-user`, async (req, res) => {
   const { email, password } = req.body
 
