@@ -15,7 +15,7 @@ const {
 const app = express()
 
 app.use(express.json())
-app.use(cors())
+app.use(cors({ origin: `*` }))
 
 app.get("/whoami", requireUser, (req, res) => {
   res.json({ userId: req.user.userId })
