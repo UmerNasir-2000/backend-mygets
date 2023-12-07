@@ -12,23 +12,12 @@ const {
   addUserToOrg,
   fetchUsersByQuery,
   inviteUserToOrg,
+  updateOrg,
+  deleteOrg
 } = require("./auth")
 
 const app = express()
 
-// var whitelist = ['http://localhost:3000', 'https://website-mygets.vercel.app/', `*`]
-
-// var corsOptions = {
-//   origin: function (origin, callback) {
-//     if (whitelist.indexOf(origin) !== -1) {
-//       callback(null, true)
-//     } else {
-//       callback(new Error('Not allowed by CORS'))
-//     }
-//   }
-// }
-
-// app.use(cors(corsOptions))
 app.use(cors())
 app.use(express.json())
 
@@ -41,21 +30,36 @@ app.get("/list-organizations", requireUser, async (req, res) => {
   return res.status(200).json(Object.values(userDetails.orgIdToOrgInfo))
 })
 
+app.delete("/organizations", requireUser, async (req, res) => {
+  await deleteOrg(`ab54cb98-9be1-424a-92a0-3180ae9577f5`)
+  await deleteOrg(`2e8b613e-1c45-4d9e-8b43-ced9fd84ce51`)
+  await deleteOrg(`10147d84-e39b-4def-80fe-c6d7026e433d`)
+  await deleteOrg(`a704654e-af82-4ba0-a999-7938eecd0cbd`)
+  await deleteOrg(`85c2dbb5-4bab-4730-9c0d-c0c02850a443`)
+  await deleteOrg(`146c5b00-a475-48ea-baa1-ad50890d4964`)
+
+  return res.status(200).json({ success: true})
+})
+
 app.post("/create-organization", requireUser, async (req, res) => {
   const organization = await createOrg({ name: req.body.name })
-  const orgResponse = await addUserToOrg({
+
+  console.log('organization', organization)
+
+  await addUserToOrg({
     orgId: organization.orgId,
     userId: req.user.userId,
     role: `Admin`,
   })
+
+  await updateOrg({ orgId: organization.orgId, metadata: { country: req.body.country, industryType: req.body.industryType, tenderProducts: req.body.tenderProducts } })
+
   return res.status(201).json({ success: true })
 })
 
 app.post("/invite", requireUser, async (req, res) => {
-  console.log('req.body', req.body)
   const users = await fetchUsersByQuery({ emailOrUsername: req.body.email })
 
-  console.log('users', users)
   if (users.length === 0)
     return res.status(404).json({ message: `User not found` })
 
@@ -64,8 +68,6 @@ app.post("/invite", requireUser, async (req, res) => {
     orgId: req.body.orgId,
     role: req.body.role,
   })
-
-  console.log('invitee', invitee)
 
   return res.status(201).json({ invitee })
 })
@@ -85,7 +87,7 @@ app.post(`/create-user`, async (req, res) => {
       sendEmailToConfirmEmailAddress: false,
       emailConfirmed: true,
     })
-    console.log("user", user)
+
     const token = await createAccessToken({
       userId: user.userId,
       durationInMinutes: 60,
